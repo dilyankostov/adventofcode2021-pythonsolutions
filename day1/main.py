@@ -5,15 +5,12 @@ from assertpy import assert_that
 
 
 def count_larger_than_prev(int_list: list) -> int:
-    if not int_list:
+    if len(int_list) < 2:
         return 0
-
-    last_num = int_list[0]
     total = 0
-    for num in int_list:
-        if num > last_num:
+    for i in range(1, len(int_list)):
+        if int_list[i] > int_list[i - 1]:
             total += 1
-        last_num = num
 
     return total
 
