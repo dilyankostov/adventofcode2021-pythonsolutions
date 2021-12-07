@@ -14,7 +14,6 @@ def extract_fish_dict_from_file(file_name: str) -> dict[int, int]:
 def age_fishies_n_days(fish_dict: dict[int, int], n: int) -> dict[int, int]:
     for i in range(n):
         new_fishies = dict(fish_dict)
-        tryy=sorted(fish_dict.items(), reverse=True)
 
         for fish_age in range(8):
             new_fishies[fish_age] = fish_dict.get(fish_age + 1, 0)
