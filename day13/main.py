@@ -1,7 +1,6 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
 from assertpy import assert_that
-from collections import defaultdict
 import re
 
 
@@ -29,7 +28,7 @@ def fold_once(coord_map, fold):
         if coord_[axis] < fold[1]:
             new_map.add(coord_)
         else:
-            if axis == 0:
+            if fold[0] == 'x':
                 new_map.add((fold[1] - (x - fold[1]), y))
             else:
                 new_map.add((x, fold[1] - (y - fold[1])))
@@ -39,12 +38,10 @@ def fold_once(coord_map, fold):
 def fold_all(coord_map, all_folds):
     for fold in all_folds:
         coord_map = fold_once(coord_map, fold)
-        # print_all(coord_map)
     return coord_map
 
 
 def print_all(coord_map):
-    print()
     for y in range(max(map(lambda i: i[1], coord_map)) + 1):
         for x in range(max(map(lambda i: i[0], coord_map)) + 1):
             if (x, y) in coord_map:
