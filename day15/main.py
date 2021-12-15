@@ -3,6 +3,8 @@
 from assertpy import assert_that
 import heapq
 from numpy import base_repr
+import time
+start_time = time.time()
 
 
 def extract_data_from_file(file_name: str) -> dict[tuple[int, int], int]:
@@ -42,12 +44,8 @@ def expand_map(coord_map):
     new_map = {}
     for i in range(5):
         for j in range(5):
-            new_map = new_map | \
-                      {
-                          (width_map * i + x, height_map * j + y): int(base_repr(v + i + j, 9)) % 10 or 9
-                          for ((x, y), v)
-                          in coord_map.items()
-                      }
+            for ((x, y), v) in coord_map.items():
+                new_map[(width_map * i + x, height_map * j + y)] = int(base_repr(v + i + j, 9)) % 10 or 9
     return new_map
 
 
@@ -69,9 +67,15 @@ if __name__ == '__main__':
     assert_that(answer).is_equal_to(315)
 
     # PART2 REAL
+    print("--- %s seconds ---" % (round(time.time() - start_time, 2)))
     chitons_map = extract_data_from_file("data_real.txt")
+    print("--- %s seconds ---" % (round(time.time() - start_time, 2)))
     chitons_expanded = expand_map(chitons_map)
+    print("--- %s seconds ---" % (round(time.time() - start_time, 2)))
+    # execution_time = timeit.timeit("""search_adjasent(chitons_expanded)""", number=1)
+    # print(execution_time)
     answer = search_adjasent(chitons_expanded)
+    print("--- %s seconds ---" % (round(time.time() - start_time, 2)))
     assert_that(answer).is_not_equal_to(315)
     print(answer)
 
