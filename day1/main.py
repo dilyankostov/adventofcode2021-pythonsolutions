@@ -37,25 +37,25 @@ def count_three_larger(int_list: list) -> int:
 
 if __name__ == '__main__':
     # EX1 TEST
-    numbers_list = turn_num_txt_to_list("numbers_test.txt")
+    numbers_list = turn_num_txt_to_list("data_test.txt")
     result = count_larger_than_prev(numbers_list)
 
     assert_that(result).is_equal_to(7)
 
     # EX1 REAL
-    numbers_list = turn_num_txt_to_list("numbers_real.txt")
+    numbers_list = turn_num_txt_to_list("data_real.txt")
     result = count_larger_than_prev(numbers_list)
 
     print(f"The first result is {result}")
 
     # EX2 TEST
-    numbers_list = turn_num_txt_to_list("numbers_test.txt")
+    numbers_list = turn_num_txt_to_list("data_test.txt")
     result = count_three_larger(numbers_list)
 
     assert_that(result).is_equal_to(5)
 
     # EX2 REAL
-    numbers_list = turn_num_txt_to_list("numbers_real.txt")
+    numbers_list = turn_num_txt_to_list("data_real.txt")
     result = count_three_larger(numbers_list)
 
     print(f"The second result is {result}")
