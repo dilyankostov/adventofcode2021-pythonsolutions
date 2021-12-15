@@ -33,34 +33,20 @@ def get_max_min_of_dict_in_dict(dict_of_dicts: dict[int, dict[str, int]]) -> (in
     return int("".join(max_list), 2), int("".join(min_list), 2)
 
 
-def most_common_filter(number: str, freq_dict: dict, position) -> bool:
+def most_or_least_filter(number: str, freq_dict: dict, position, function) -> bool:
     if max(freq_dict.values()) == min(freq_dict.values()):
-        filter_d = '1'
+        if function is max:
+            filter_d = '1'
+        else:
+            filter_d = '0'
     else:
-        filter_d = max(freq_dict, key=freq_dict.get)
+        filter_d = function(freq_dict, key=freq_dict.get)
     return number[position] == filter_d
 
 
-def least_common_filter(number: str, freq_dict: dict, position) -> bool:
-    if max(freq_dict.values()) == min(freq_dict.values()):
-        filter_d = '0'
-    else:
-        filter_d = min(freq_dict, key=freq_dict.get)
-    return number[position] == filter_d
-
-
-def get_most_common_num(list_num, pos_freq_dict) -> str:
+def get_most_or_least_common_num(list_num, pos_freq_dict, function) -> str:
     for i in range(len(pos_freq_dict)):
-        list_num = list(filter(lambda num: most_common_filter(num, pos_freq_dict[i], i), list_num))
-        if len(list_num) == 1:
-            break
-        pos_freq_dict = get_freq_from_list(list_num)
-    return list_num[0]
-
-
-def get_least_common_num(list_num, pos_freq_dict) -> str:
-    for i in range(len(pos_freq_dict)):
-        list_num = list(filter(lambda num: least_common_filter(num, pos_freq_dict[i], i), list_num))
+        list_num = list(filter(lambda num: most_or_least_filter(num, pos_freq_dict[i], i, function), list_num))
         if len(list_num) == 1:
             break
         pos_freq_dict = get_freq_from_list(list_num)
@@ -89,8 +75,8 @@ if __name__ == '__main__':
     # PART2 TEST
     num_list = convert_txt_to_list("data_test.txt")
     positional_freq = get_freq_from_list(num_list)
-    oxy_rating_str = get_most_common_num(num_list, positional_freq)
-    co2_rating_str = get_least_common_num(num_list, positional_freq)
+    oxy_rating_str = get_most_or_least_common_num(num_list, positional_freq, max)
+    co2_rating_str = get_most_or_least_common_num(num_list, positional_freq, min)
 
     assert_that(oxy_rating_str).is_equal_to('10111')
     assert_that(co2_rating_str).is_equal_to('01010')
@@ -102,8 +88,8 @@ if __name__ == '__main__':
     # PART2 REAL
     num_list = convert_txt_to_list("data_real.txt")
     positional_freq = get_freq_from_list(num_list)
-    oxy_rating_str = get_most_common_num(num_list, positional_freq)
-    co2_rating_str = get_least_common_num(num_list, positional_freq)
+    oxy_rating_str = get_most_or_least_common_num(num_list, positional_freq, max)
+    co2_rating_str = get_most_or_least_common_num(num_list, positional_freq, min)
 
     life_support_rating = int(oxy_rating_str, 2) * int(co2_rating_str, 2)
 
