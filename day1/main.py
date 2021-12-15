@@ -3,14 +3,16 @@
 from assertpy import assert_that
 
 
-def count_larger_than_prev(int_list: list) -> int:
-    if len(int_list) < 2:
+def count_smaller_than_nth(int_list: list, n: int) -> int:
+    """
+    counts the number numbers that are smaller than the number that is n ahead
+    """
+    if len(int_list) <= n:
         return 0
     total = 0
-    for i in range(1, len(int_list)):
-        if int_list[i] > int_list[i - 1]:
+    for i in range(0, len(int_list) - n):
+        if int_list[i + n] > int_list[i]:
             total += 1
-
     return total
 
 
@@ -19,43 +21,30 @@ def turn_num_txt_to_list(file_name: str) -> list:
         return [int(x) for x in numbers]
 
 
-def count_three_larger(int_list: list) -> int:
-    length = len(int_list)
-    if length < 4:
-        return 0
-    total = 0
-    three_sum_prev = int_list[0] + int_list[1] + int_list[2]
-    for index, num in enumerate(int_list):
-        if index + 2 < length:
-            three_sum = num + int_list[index + 1] + int_list[index + 2]
-            if three_sum > three_sum_prev:
-                total += 1
-            three_sum_prev = three_sum
-
-    return total
-
-
 if __name__ == '__main__':
     # EX1 TEST
     numbers_list = turn_num_txt_to_list("data_test.txt")
-    result = count_larger_than_prev(numbers_list)
+    result = count_smaller_than_nth(numbers_list, 1)
 
     assert_that(result).is_equal_to(7)
 
     # EX1 REAL
     numbers_list = turn_num_txt_to_list("data_real.txt")
-    result = count_larger_than_prev(numbers_list)
+    result = count_smaller_than_nth(numbers_list, 1)
 
     print(f"The first result is {result}")
 
     # EX2 TEST
+    # If you think about it, a three-measurement sliding window has the elements A+B+C,
+    # while the next window is B+C+D so the difference is A+B+C-B-C-D = A-D
+    # so we don't need to sum anything, just check if A is smaller than D
     numbers_list = turn_num_txt_to_list("data_test.txt")
-    result = count_three_larger(numbers_list)
+    result = count_smaller_than_nth(numbers_list, 3)
 
     assert_that(result).is_equal_to(5)
 
     # EX2 REAL
     numbers_list = turn_num_txt_to_list("data_real.txt")
-    result = count_three_larger(numbers_list)
+    result = count_smaller_than_nth(numbers_list, 3)
 
     print(f"The second result is {result}")
