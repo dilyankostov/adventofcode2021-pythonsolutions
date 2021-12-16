@@ -5,7 +5,8 @@ from assertpy import assert_that
 
 def count_smaller_than_nth(int_list: list, n: int) -> int:
     """
-    counts the number numbers that are smaller than the number that is n ahead
+    you have a list [i1, i2, i3..] count the number of integers that are smaller than the integer n spaces ahead
+    i.e. count_smaller_than_nth([1, 2, 3], 1) will return 2 because 1 is smaller than 2 and 2 is smaller than 3.
     """
     if len(int_list) <= n:
         return 0
