@@ -1,106 +1,122 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-from typing import Iterator
+import math
+import operator
+from typing import Any
 from assertpy import assert_that
-from numpy import base_repr
+
+operations = {
+        0: lambda a: sum(a),
+        1: lambda a: math.prod(a),
+        2: lambda a: min(a),
+        3: lambda a: max(a),
+        5: lambda a: operator.gt(*a),
+        6: lambda a: operator.lt(*a),
+        7: lambda a: operator.eq(*a)
+    }
 
 
-def extract_data_from_file(file_name: str) -> Iterator:
+def extract_data_from_file(file_name: str) -> str:
     with open(file_name, 'r') as data_file:
-        return bin(int('1'+data_file.readline().strip(), 16))[3:]
+        return bin(int('1'+data_file.read().strip(), 16))[3:]
 
 
-def str_iter_n(iterable: Iterator, iterator_counter: int, n: int) -> tuple[str, int]:
-    total = ""
-    for i in range(n):
-        total += next(iterable)
-        iterator_counter += 1
-    return total, iterator_counter
+class Bits:
+    def __init__(self, string: str):
+        self.data = iter(string)
+        self.bits = len(string)
 
+    def pop(self, n: int) -> str:
+        s_: str = ""
+        for i in range(n):
+            s_ += next(self.data)
+            self.bits -= 1
+        return s_
 
-def literal_packet(iterable: Iterator, iter_counter: int = 6) -> tuple[int, int]:
-    number = ""
-    while True:
-        first_v, iter_counter = str_iter_n(iterable, iter_counter, 1)
-        value, iter_counter = str_iter_n(iterable, iter_counter, 4)
-        number += value
-        if first_v == '0':
-            break
-    number = int(number, 2)
-    # rest, iter_counter = str_iter_n(iterable, iter_counter, 4 - (iter_counter % 4))
-    return number, iter_counter
-
-
-def read_packet(iterable: Iterator, total_counter: int = 0) -> tuple[int, int, int]:
-    iter_counter = 0
-    packet_version, iter_counter = str_iter_n(itr, iter_counter, 3)
-    packet_version_sum = int(packet_version, 2)
-    packet_id, iter_counter = str_iter_n(itr, iter_counter, 3)
-    if int(packet_id, 2) == 4:
-        secret_n, iter_counter = literal_packet(itr, iter_counter)
-        return secret_n, iter_counter, packet_version_sum
-    else:
-        length_type, iter_counter = str_iter_n(iterable, iter_counter, 1)
-        if length_type == '0':
-            sub_len, iter_counter = str_iter_n(iterable, iter_counter, 15)
-            sub_len = int(sub_len, 2)
-            sub_read = 0
-            num = 0
-            while sub_len > sub_read:
-                read_num, read_iters, read_pack_v = read_packet(itr)
-                packet_version_sum += read_pack_v
-                sub_read += read_iters
-                num += read_num
-            return num, iter_counter + sub_read, packet_version_sum
+    def read(self):
+        version = int(self.pop(3), 2)
+        op_id = int(self.pop(3), 2)
+        if op_id == 4:
+            n_ = ""
+            while self.pop(1) == '1':
+                n_ += self.pop(4)
+            return version, op_id, int(n_ + self.pop(4), 2)
+        if self.pop(1) == '1':
+            s_packages =[]
+            for i in range(int(self.pop(11), 2)):
+                s_packages.append(self.read())
+            return version, op_id, s_packages
         else:
-            sub_len, iter_counter = str_iter_n(iterable, iter_counter, 11)
-            sub_len = int(sub_len, 2)
-            sub_read = 0
-            num = 0
-            for i in range(sub_len):
-                read_num, read_iters, read_pack_v = read_packet(itr)
-                packet_version_sum += read_pack_v
-                sub_read += read_iters
-                num += read_num
-            return num, iter_counter + sub_read, packet_version_sum
+            s_p_len = self.pop(15)
+            s_p = Bits(self.pop(int(s_p_len, 2)))
+            s_packages = []
+            while s_p.bits > 0:
+                s_packages.append(s_p.read())
+            return version, op_id, s_packages
+            
+
+def do_operations(data: tuple):
+    _, op_id, s_packages = data
+    if isinstance(s_packages, int):
+        return s_packages
+    return operations[op_id](do_operations(s_package) for s_package in s_packages)
+
+
+def get_version_sum(data: tuple[int, int, Any]) -> int:
+    v, _, s_packages = data
+    if isinstance(s_packages, int):
+        return v
+    return sum([get_version_sum(s_package) for s_package in s_packages]) + v
 
 
 if __name__ == '__main__':
     # PART1 TEST
-    itr = extract_data_from_file("data_test_literal_packet_2021.txt")
-    itr = iter(itr)
-    answer = read_packet(itr)
-    assert_that(answer[0]).is_equal_to(2021)
+    bits_s = extract_data_from_file("data_test_packet_v_sum1.txt")
+    bits = Bits(bits_s).read()
+    answer = get_version_sum(bits)
+    assert_that(answer).is_equal_to(16)
+    bits_s = extract_data_from_file("data_test_packet_v_sum2.txt")
+    bits = Bits(bits_s).read()
+    answer = get_version_sum(bits)
+    assert_that(answer).is_equal_to(12)
+    bits_s = extract_data_from_file("data_test_packet_v_sum3.txt")
+    bits = Bits(bits_s).read()
+    answer = get_version_sum(bits)
+    assert_that(answer).is_equal_to(23)
+    bits_s = extract_data_from_file("data_test_packet_v_sum4.txt")
+    bits = Bits(bits_s).read()
+    answer = get_version_sum(bits)
+    assert_that(answer).is_equal_to(31)
 
-    itr = extract_data_from_file("data_test_operational1.txt")
-    itr = iter(itr)
-    answer = read_packet(itr)
-    assert_that(answer[0]).is_equal_to(30)
+    answer = do_operations(Bits(bin(int('1' + 'C200B40A82', 16))[3:]).read())
+    assert_that(answer).is_equal_to(3)
+    answer = do_operations(Bits(bin(int('1' + '04005AC33890', 16))[3:]).read())
+    assert_that(answer).is_equal_to(54)
+    answer = do_operations(Bits(bin(int('1' + '880086C3E88112', 16))[3:]).read())
+    assert_that(answer).is_equal_to(7)
+    answer = do_operations(Bits(bin(int('1' + 'CE00C43D881120', 16))[3:]).read())
+    assert_that(answer).is_equal_to(9)
+    answer = do_operations(Bits(bin(int('1' + 'D8005AC2A8F0', 16))[3:]).read())
+    assert_that(answer).is_equal_to(1)
+    answer = do_operations(Bits(bin(int('1' + 'F600BC2D8F', 16))[3:]).read())
+    assert_that(answer).is_equal_to(0)
+    answer = do_operations(Bits(bin(int('1' + '9C005AC2F8F0', 16))[3:]).read())
+    assert_that(answer).is_equal_to(0)
+    answer = do_operations(Bits(bin(int('1' + '9C0141080250320F1802104A08', 16))[3:]).read())
+    assert_that(answer).is_equal_to(1)
+    #
+    bits_s = extract_data_from_file("data_test_operational1.txt")
+    bits = Bits(bits_s).read()
+    answer = do_operations(bits)
+    assert_that(answer).is_equal_to(0)
 
-    itr = extract_data_from_file("data_test_operational2.txt")
-    itr = iter(itr)
-    answer = read_packet(itr)
-    assert_that(answer[0]).is_equal_to(6)
+    bits_s = extract_data_from_file("data_test_operational2.txt")
+    bits = Bits(bits_s).read()
+    answer = do_operations(bits)
+    assert_that(answer).is_equal_to(1)
 
-    itr = extract_data_from_file("data_test_packet_v_sum1.txt")
-    itr = iter(itr)
-    answer = read_packet(itr)
-    assert_that(answer[2]).is_equal_to(16)
-    itr = extract_data_from_file("data_test_packet_v_sum2.txt")
-    itr = iter(itr)
-    answer = read_packet(itr)
-    assert_that(answer[2]).is_equal_to(12)
-    itr = extract_data_from_file("data_test_packet_v_sum3.txt")
-    itr = iter(itr)
-    answer = read_packet(itr)
-    assert_that(answer[2]).is_equal_to(23)
-    itr = extract_data_from_file("data_test_packet_v_sum4.txt")
-    itr = iter(itr)
-    answer = read_packet(itr)
-    assert_that(answer[2]).is_equal_to(31)
-
-    # PART 1 REAL
-    itr = extract_data_from_file("data_real.txt")
-    itr = iter(itr)
-    answer = read_packet(itr)
+    # PART 1 & 2 REAL
+    bits_s = extract_data_from_file("data_real.txt")
+    bits = Bits(bits_s).read()
+    answer = do_operations(bits)
     print(answer)
