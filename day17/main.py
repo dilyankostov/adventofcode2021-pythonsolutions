@@ -11,7 +11,7 @@ def extract_data_from_file(file_name: str) -> list:
 
 
 def shoot(dx, dy, x1, x2, y1, y2, x=0, y=0):
-    if x1 <= x <= x2 and y1 <= y <= y2:
+    if x in range(x1, x2 + 1) and y in range(y2, y1 - 1, -1):
         return True
     if x > x2 or y < y1:
         return False
@@ -21,7 +21,7 @@ def shoot(dx, dy, x1, x2, y1, y2, x=0, y=0):
 def shoot_shots(x1, x2, y1, y2):
     total = 0
     for dx in range(1, t_x2 + 1):
-        for dy in range(t_y1, -t_y1 + 1):
+        for dy in range(t_y1, -t_y1):
             total += shoot(dx, dy, x1, x2, y1, y2)
     return total
 
