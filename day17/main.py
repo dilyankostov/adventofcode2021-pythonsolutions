@@ -1,91 +1,46 @@
 # Press ⌃R to execute it or replace it with your code.
 # Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
-import math
-import operator
-from typing import Any
 from assertpy import assert_that
 import re
-import numpy
-from collections import defaultdict
+
 
 def extract_data_from_file(file_name: str) -> list:
     with open(file_name, 'r') as data_file:
-        return [(int(x1), int(x2)) for x1, x2 in [x.split("..") for x in re.findall(r"target area: x=(.*), y=(.*)",
-                                                                                    data_file.readline().strip())[0]]]
+        limits = re.search(r"x=(-?\d+)..(-?\d+), y=(-?\d+)..(-?\d+)", data_file.readline()).groups()
+        return [int(i) for i in limits]
 
 
-def next_x(velocity: int) -> int:
-    return velocity - numpy.sign(velocity)
+def shoot(dx, dy, x1, x2, y1, y2, x=0, y=0):
+    if x1 <= x <= x2 and y1 <= y <= y2:
+        return True
+    if x > x2 or y < y1:
+        return False
+    return shoot(max(0, dx - 1), dy - 1, x1, x2, y1, y2, x+dx, y+dy)
 
 
-def next_y(velocity: int) -> int:
-    return velocity - 1
-
-
-def calc_x(x1, x2):
-    # only pos case
-    target = range(x1, x2 + 1)
-    winners = defaultdict(list)
-    for init_vel in range(numpy.sign(x2), x2 + numpy.sign(x2), numpy.sign(x2)):
-        next_pos = init_vel
-        vel = init_vel
-        for n_steps in range(1, 200):
-            if next_pos in target:
-                winners[init_vel].append(n_steps)
-            vel = next_x(vel)
-            next_pos = next_pos + vel
-            if next_pos > x2:
-                break
-    return winners
-
-
-def calc_y(y1, y2):
-    # only pos case
-    target = range(y2, y1 + numpy.sign(y2), numpy.sign(y2))
-    winners = defaultdict(list)
-    for init_vel in range(min(0, y1, y2), max(abs(y1), abs(y2)) + 1):
-        next_pos = init_vel
-        max_pos = max(0, next_pos)
-        vel = init_vel
-        n_steps = 1
-        while True:
-            if next_pos in target:
-                winners[init_vel].append((n_steps, max_pos))
-            vel = vel - 1
-            next_pos = next_pos + vel
-            max_pos = max(max_pos, next_pos)
-            n_steps += 1
-            if next_pos < min(y1, y2):
-                break
-    return winners
+def shoot_shots(x1, x2, y1, y2):
+    total = 0
+    for dx in range(1, t_x2 + 1):
+        for dy in range(t_y1, -t_y1 + 1):
+            total += shoot(dx, dy, x1, x2, y1, y2)
+    return total
 
 
 if __name__ == '__main__':
     # PART1 TEST
-    (t_x1, t_x2), (t_y1, t_y2) = extract_data_from_file("data_test.txt")
-    possible_x = calc_x(t_x1, t_x2)
-    possible_y = calc_y(t_y1, t_y2)
-    answer_p1 = possible_y[max(possible_y)]
-    assert_that(answer_p1[0][1]).is_equal_to(45)
-    mixed = set()
-    for y, v in possible_y.items():
-        for point in v:
-            for x, v2 in possible_x.items():
-                if point[0] in v2:
-                    mixed.add((x, y))
-    assert_that(len(mixed)).is_equal_to(112)
+    t_x1, t_x2, t_y1, t_y2 = extract_data_from_file("data_test.txt")
+    # from maths, we know that if it starts with velocity v and then it's height is v, v + v-1, v + v-1 + v-2... + 1
+    # and there is a formula that x + x-1 +... 1 = x*(x+1)/2. The max height would go up then hit y=0, then hit - (v+1)
+    # so if you hit y0 (negative) directly after the horiz line, you have started with |y0|-1 speed = y0+1.
+    # So hitting y0 when y0 is negative leads to max height (y0+1)(y0+1-1)/2=y0*(y0+1)/2.
+    max_y = t_y1*(t_y1+1)//2
+    assert_that(max_y).is_equal_to(45)
+    answer = shoot_shots(t_x1, t_x2, t_y1, t_y2)
+    assert_that(answer).is_equal_to(112)
 
     # PART1 REAL
-    (t_x1, t_x2), (t_y1, t_y2) = extract_data_from_file("data_real.txt")
-    possible_x = calc_x(t_x1, t_x2)
-    possible_y = calc_y(t_y1, t_y2)
-    answer = possible_y[max(possible_y)]
+    t_x1, t_x2, t_y1, t_y2 = extract_data_from_file("data_real.txt")
+    max_y = t_y1*(t_y1+1)//2
+    print(max_y)
+    answer = shoot_shots(t_x1, t_x2, t_y1, t_y2)
     print(answer)
-    mixed = set()
-    for y, v in possible_y.items():
-        for point in v:
-            for x, v2 in possible_x.items():
-                if point[0] in v2:
-                    mixed.add((x, y))
-    # assert_that(len(mixed)).is_greater_than(1876)
-    print(len(mixed))
